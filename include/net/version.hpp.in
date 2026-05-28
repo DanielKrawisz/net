@@ -1,0 +1,8 @@
+#ifndef NET_VERSION_CONFIG_H
+#define NET_VERSION_CONFIG_H
+
+// define your version_libinterface
+#define NET_VERSION "@CMAKE_PROJECT_VERSION@"
+
+
+#endif // NET_VERSION_CONFIG_H

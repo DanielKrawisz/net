@@ -1,0 +1,8 @@
+#ifndef IO_VERSION_CONFIG_H
+#define IO_VERSION_CONFIG_H
+
+// define your version_libinterface
+#define IO_VERSION "@CMAKE_PROJECT_VERSION@"
+
+
+#endif // IO_VERSION_CONFIG_H
