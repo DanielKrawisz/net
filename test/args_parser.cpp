@@ -6,7 +6,7 @@
 #include "data/exception.hpp"
 #include "gtest/gtest.h"
 
-namespace data::io::args {
+namespace io::args {
 
     parsed parse (const std::vector<const char*> &v) {
         return parsed {static_cast<int> (v.size ()), v.data ()};

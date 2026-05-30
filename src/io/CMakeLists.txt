@@ -11,11 +11,11 @@ target_sources (
 
   PRIVATE
 
-  #run.cpp
   wait_for_enter.cpp
   log.cpp
   arg_parser.cpp
   random.cpp
+  #run.cpp
 )
 
 target_compile_features (io PUBLIC cxx_std_23)

@@ -43,6 +43,10 @@ namespace net {
     struct in_stream {
         // throw data::exception on failure.
         virtual awaitable<message> receive () = 0;
+
+        // NOTE: if the result is true, then receive will immediately throw.
+        // However, if the result is false, that doesn't guarantee that the
+        // stream will not be closed by the time you try receive.
         virtual bool closed () = 0;
         virtual ~in_stream () {}
     };

@@ -4,38 +4,69 @@
 #ifndef IO_RUN
 #define IO_RUN
 
-#include <net/asio/session.hpp>
-#include <net/async/message_queue.hpp>
+#include <net/asio/stream.hpp>
 
 #include <boost/process.hpp>
+#include <boost/process/io.hpp>
+#include <boost/process/child.hpp>
+#include <boost/process/async_pipe.hpp>
 
 namespace io {
 
-    using error_code = net::asio::error_code;
-    using error_handler = net::asio::error_handler;
+    using string = std::string;
+    using string_view = std::string_view;
+    template <typename X> using ptr = std::shared_ptr<X>;
+    template <typename X> using vector = std::vector<X>;
+    template <typename X> using awaitable = data::awaitable<X>;
 
-    using close_handler = handler<int>;
-
-    class process;
-
-    struct handlers {
-        virtual ~handlers () {}
-        virtual void read_out (string_view) = 0;
-        virtual void read_err (string_view) = 0;
+    struct process_result {
+        int exit_code;
     };
 
-    using interaction = function<ptr<handlers> (ptr<process>)>;
+    // run an external program.
+    awaitable<process_result> execute (data::exec, vector<string> command);
 
-    // run an external commannd.
-    void run (data::exec &, string command, error_handler, interaction, close_handler);
+    struct running_process;
 
-    class process : public net::async::message_queue<const string &, error_code> {
-        ptr<boost::process::child> Child;
-        process (ptr<boost::process::child> cx, ptr<net::async::write_stream<const string &, error_code>> stream, error_handler errors):
-            net::async::message_queue<const string &, error_code> {stream, errors}, Child {cx} {}
+    // launch asynchronously
+    running_process run (data::exec, vector<string> command);
 
-        friend void run (boost::asio::io_context &, string command, error_handler, interaction, close_handler);
+    struct running_process {
+
+        running_process (data::exec, vector<string> command);
+
+        using pipe_out = net::asio::char_out_stream<boost::process::async_pipe>;
+        using pipe_in = net::asio::char_in_stream<boost::process::async_pipe>;
+
+        // stdin of child
+        pipe_out In;
+
+        // stdout of child
+        pipe_in Out;
+
+        // stderr of child
+        pipe_in Err;
+
+        // await process completion
+        awaitable<process_result> result ();
+
+        boost::process::child Child;
+
+        // TODO need move semantics.
     };
+
+    // convenience wrapper
+    awaitable<process_result> inline execute (data::exec x, vector<string> command) {
+        // if we compress this in one line, then
+        // p becomes a temporary which might be
+        // deleted too early.
+        auto p = run (x, command);
+        co_return co_await p.result ();
+    }
+
+    running_process run (data::exec x, vector<string> command) {
+        return running_process {x, command};
+    }
 
 }
 

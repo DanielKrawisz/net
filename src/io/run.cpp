@@ -2,10 +2,8 @@
 // Distributed under the Open BSV software license, see the accompanying file LICENSE.
 
 #include <io/run.hpp>
-#include <net/async/wait_for_message.hpp>
-#include <net/asio/socket.hpp>
 
-namespace data::io {
+namespace io {
 
     namespace bp = boost::process;
 
@@ -13,6 +11,29 @@ namespace data::io {
 
     using socket = net::asio::socket<bp::async_pipe>;
 
+
+
+    running_process::running_process (data::exec io, vector<string> command) {
+        auto in  = std::make_shared<boost::process::async_pipe> (io);
+        auto out = std::make_shared<boost::process::async_pipe> (io);
+        auto err = std::make_shared<boost::process::async_pipe> (io);
+
+        Child = std::move (boost::process::child (
+            command[0],
+            boost::process::args (
+                command.begin () + 1,
+                command.end ()),
+            boost::process::std_in  < *in,
+            boost::process::std_out > *out,
+            boost::process::std_err > *err,
+            io));
+
+        In = pipe (in);
+        Out = pipe (out);
+        Err = pipe (err);
+
+    }
+/*
     // run an external command with standard in and standard out connected.
     void run (boost::asio::io_context &io, string command, error_handler err_handler, interaction i, close_handler close) {
 
@@ -38,7 +59,7 @@ namespace data::io {
             handle->read_err (x);
         }, err_handler);
 
-    }
+    }*/
 
 }
 

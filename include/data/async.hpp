@@ -37,13 +37,7 @@ namespace data {
 
     // spawn a coroutine and rethrow all exceptions.
     template<typename Coroutine>
-    void spawn (exec ex, Coroutine &&coro) {
-        co_spawn (ex,
-            std::forward<Coroutine> (coro),
-            [] (std::exception_ptr eptr) {
-                if (eptr) std::rethrow_exception (eptr);
-            });
-    }
+    void spawn (exec ex, Coroutine &&coro);
 
     // synced turns an async function and makes it work synchronously.
 
@@ -67,6 +61,16 @@ namespace data {
 
     // wait for a given amount of time.
     awaitable<void> sleep (std::chrono::milliseconds duration);
+
+    // spawn a coroutine and rethrow all exceptions.
+    template<typename Coroutine>
+    void spawn (exec ex, Coroutine &&coro) {
+        co_spawn (ex,
+            std::forward<Coroutine> (coro),
+            [] (std::exception_ptr eptr) {
+                if (eptr) std::rethrow_exception (eptr);
+            });
+    }
 
     template <typename fun, typename... args>
     requires std::regular_invocable<fun, args...> && requires (fun f, args... a) {

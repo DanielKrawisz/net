@@ -1,6 +1,6 @@
 #include <io/arg_parser.hpp>
 
-namespace data::io::args {
+namespace io::args {
     inline const std::regex option_re {
         R"(^--([A-Za-z][A-Za-z0-9_]*)=(.*)$)"
     };

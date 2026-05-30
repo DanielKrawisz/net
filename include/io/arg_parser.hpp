@@ -142,7 +142,18 @@ existing programs while providing a solid foundation for future extensions.
 #include <data/slice.hpp>
 #include <data/schema.hpp>
 
-namespace data::io::args {
+namespace io::args {
+
+    using string_view = data::string_view;
+    template <typename X> using maybe = data::maybe<X>;
+    template <typename X> using list = data::list<X>;
+    template <typename X> using set = data::set<X>;
+    template <typename X> using cross = data::cross<X>;
+    template <typename K, typename V> using entry = data::entry<K, V>;
+    template <typename K, typename V> using map = data::map<K, V>;
+    template <typename K, typename V> using dispatch = data::dispatch<K, V>;
+
+    namespace schema = data::schema;
 
     struct parsed {
         parsed (int arg_count, const char *const arg_value[]);
@@ -188,12 +199,12 @@ namespace data::io::args {
 
     template <typename X> void inline parsed::get (const std::string &z, maybe<X> &x) const {
         auto v = get_value (Options, string_view (z));
-        if (v) x = encoding::read<X> {} (*v);
+        if (v) x = data::encoding::read<X> {} (*v);
         else x = {};
     }
 
     template <typename X> void inline parsed::get (size_t z, maybe<X> &x) const {
-        if (Arguments.size () > z) x = encoding::read<X> {} (Arguments[z]);
+        if (Arguments.size () > z) x = data::encoding::read<X> {} (Arguments[z]);
         else x = {};
     }
 
