@@ -15,7 +15,7 @@ target_sources (
   log.cpp
   arg_parser.cpp
   random.cpp
-  #run.cpp
+  run.cpp
 )
 
 target_compile_features (io PUBLIC cxx_std_23)
@@ -30,11 +30,13 @@ target_link_libraries (
   Data::string
   Boost::log_setup
   Boost::log
+  Boost::process
 )
 
 target_include_directories (
   io
   PUBLIC
+  ${Boost_INCLUDE_DIRS}
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/generated/>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>

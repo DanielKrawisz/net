@@ -39,12 +39,12 @@ namespace net::asio {
         };
 
     template <typename X, typename bytes>
-    requires AsyncReadStream<X, bytes> class in_stream;
+    requires AsyncReadStream<X, bytes> struct in_stream;
 
-    template <AsyncWriteStream X, typename byte_slice> class out_stream;
+    template <AsyncWriteStream X, typename byte_slice> struct out_stream;
 
     template <AsyncWriteStream X, typename bytes, typename byte_slice>
-    requires AsyncReadStream<X, bytes> class stream;
+    requires AsyncReadStream<X, bytes> struct stream;
 
     template <typename X> using byte_in_stream = in_stream<X, bytes>;
     template <typename X> using char_in_stream = in_stream<X, string>;
@@ -63,23 +63,63 @@ namespace net::asio {
         }
     };
 
-    template <AsyncWriteStream X, typename bytes, typename byte_slice>
-    requires AsyncReadStream<X, bytes>
-    class stream final : public net::stream<bytes, byte_slice> {
+    template <AsyncWriteStream X, typename byte_slice>
+    struct out_stream final : public net::out_stream<byte_slice> {
 
         ptr<X> Stream;
 
-        // TODO I don't think we need this.
-        close_handler OnClose;
+        bool Closed;
+
+        out_stream (ptr<X> socket) :
+            Stream {socket}, Closed {!Stream->is_open ()} {}
+
+        awaitable<void> send (byte_slice x) final override;
+
+        void close () final override;
+
+        ~out_stream () {
+            close ();
+        }
+    };
+
+    template <typename X, typename bytes>
+    requires AsyncReadStream<X, bytes>
+    struct in_stream final : public net::in_stream<bytes> {
+
+        ptr<X> Stream;
 
         bool Closed;
 
         constexpr static const int buffer_size = 4096;
         bytes Buffer;
 
-    public:
-        stream (ptr<X> socket, close_handler on_close = [] () { return; }) :
-            Stream {socket}, OnClose {on_close}, Closed {!Stream->is_open ()}, Buffer (buffer_size) {}
+        in_stream (ptr<X> socket) :
+            Stream {socket}, Closed {!Stream->is_open ()}, Buffer () {
+            Buffer.resize (buffer_size);
+        }
+
+        bool closed () final override;
+
+        awaitable<bytes> receive () final override;
+
+        ~in_stream () {}
+    };
+
+    template <AsyncWriteStream X, typename bytes, typename byte_slice>
+    requires AsyncReadStream<X, bytes>
+    struct stream final : public net::stream<bytes, byte_slice> {
+
+        ptr<X> Stream;
+
+        bool Closed;
+
+        constexpr static const int buffer_size = 4096;
+        bytes Buffer;
+
+        stream (ptr<X> socket, close_handler on_close /*= [] () { return; }*/) :
+            Stream {socket}, Closed {!Stream->is_open ()}, Buffer () {
+            Buffer.resize (buffer_size);
+        }
 
         awaitable<void> send (byte_slice x) final override;
 
@@ -116,17 +156,15 @@ namespace net::asio {
         if (Closed) return;
         Closed = true;
         Stream->close ();
-        OnClose ();
     }
 
     template <AsyncWriteStream X, typename bytes, typename byte_slice>
     requires AsyncReadStream<X, bytes>
     bool stream<X, bytes, byte_slice>::closed () {
         bool closed = !Stream->is_open ();
-        if (closed && !Closed) {
+        if (closed && !Closed)
             Closed = true;
-            OnClose ();
-        }
+
         return closed;
     }
 

@@ -5,34 +5,18 @@
 
 namespace io {
 
-    namespace bp = boost::process;
-
-    using pipe = bp::async_pipe;
-
-    using socket = net::asio::socket<bp::async_pipe>;
-
-
-
-    running_process::running_process (data::exec io, vector<string> command) {
-        auto in  = std::make_shared<boost::process::async_pipe> (io);
-        auto out = std::make_shared<boost::process::async_pipe> (io);
-        auto err = std::make_shared<boost::process::async_pipe> (io);
-
-        Child = std::move (boost::process::child (
+    running_process::running_process (data::exec io, cross<string> command):
+        In {std::make_shared<boost::asio::writable_pipe> (io)},
+        Out {std::make_shared<boost::asio::readable_pipe> (io)},
+        Err {std::make_shared<boost::asio::readable_pipe> (io)},
+        Child {
+            io,
             command[0],
-            boost::process::args (
-                command.begin () + 1,
-                command.end ()),
-            boost::process::std_in  < *in,
-            boost::process::std_out > *out,
-            boost::process::std_err > *err,
-            io));
-
-        In = pipe (in);
-        Out = pipe (out);
-        Err = pipe (err);
-
-    }
+            drop (command, 1),
+            boost::process::v2::process_stdio {
+                *In.Stream,
+                *Out.Stream,
+                *Err.Stream}} {}
 /*
     // run an external command with standard in and standard out connected.
     void run (boost::asio::io_context &io, string command, error_handler err_handler, interaction i, close_handler close) {

@@ -23,6 +23,7 @@ add_executable (
     # io
     log.cpp
     args_parser.cpp
+    run.cpp                #TODO
 )
 
 target_link_libraries (unit_tests
