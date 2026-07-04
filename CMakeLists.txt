@@ -114,7 +114,7 @@ endif ()
 # ---------------------------------------------------------
 
 # required for pretty much everything.
-find_package (Boost 1.86 COMPONENTS system filesystem process thread chrono log_setup log REQUIRED)
+find_package (Boost 1.88 COMPONENTS system filesystem process thread chrono log_setup log REQUIRED)
 # if we do not have boost
 #   * linux:
 #     * go to the boost website, download and extract the latest version.
@@ -124,8 +124,8 @@ find_package (Boost 1.86 COMPONENTS system filesystem process thread chrono log_
 
 add_definitions ("-DHAS_BOOST")
 
-message(STATUS "Boost include dirs: ${Boost_INCLUDE_DIRS}")
-message(STATUS "Boost library dirs: ${Boost_LIBRARY_DIRS}")
+message (STATUS "Boost include dirs: ${Boost_INCLUDE_DIRS}")
+message (STATUS "Boost library dirs: ${Boost_LIBRARY_DIRS}")
 
 find_package (OpenSSL REQUIRED Crypto SSL)
 # if we do not have openssl
@@ -139,6 +139,8 @@ find_package (PkgConfig REQUIRED)
 # If we do not have PkgConfig
 #   * on linux, `sudo apt-get install pkg-config`
 
+find_package (nlohmann_json CONFIG REQUIRED)
+
 IF (WIN32)
   pkg_check_modules (cryptopp REQUIRED IMPORTED_TARGET cryptopp)
 ELSE ()
@@ -148,9 +150,6 @@ ENDIF ()
 
 include (FetchContent)
 cmake_policy (SET CMP0135 NEW)
-
-FetchContent_Declare (json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
-FetchContent_MakeAvailable (json)
 
 FetchContent_Declare (ctre URL https://github.com/hanickadot/compile-time-regular-expressions/archive/refs/tags/v3.10.0.zip)
 FetchContent_MakeAvailable (ctre)
@@ -172,3 +171,4 @@ if (PACKAGE_TESTS)
 endif ()
 
 add_subdirectory (src bin)
+

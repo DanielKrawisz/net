@@ -75,7 +75,11 @@ namespace net::asio {
 
         awaitable<void> send (byte_slice x) final override;
 
-        void close () final override;
+        void close () final override {
+            if (Closed) return;
+            Closed = true;
+            Stream->close ();
+        }
 
         ~out_stream () {
             close ();

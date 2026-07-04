@@ -70,7 +70,7 @@ install (
 )
 
 install (
-  TARGETS net nlohmann_json
+  TARGETS net
   EXPORT NetTargets
   ARCHIVE
 )
